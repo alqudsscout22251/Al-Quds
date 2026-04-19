@@ -21,8 +21,8 @@
             padding: 25px;
             border-radius: 15px;
             text-align: center;
-            width: 90%;
-            max-width: 450px;
+            width: 95%;
+            max-width: 500px;
             backdrop-filter: blur(10px);
             position: relative;
             border: 2px solid rgba(255,255,255,0.1);
@@ -81,7 +81,8 @@
         }
 
         .admin-table-wrapper {
-            max-height: 250px;
+            max-height: 300px;
+            overflow-x: auto; /* للسماح بالتمرير الأفقي في الشاشات الصغيرة */
             overflow-y: auto;
             margin-top: 15px;
             background: white;
@@ -92,10 +93,10 @@
             width: 100%;
             color: black;
             border-collapse: collapse;
-            font-size: 0.85rem;
+            font-size: 0.75rem; /* تصغير الخط قليلاً ليتناسب مع كثرة البيانات */
         }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background: #eee; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+        th { background: #eee; font-weight: bold; }
 
         .footer {
             margin-top: 20px;
@@ -128,9 +129,9 @@
     </div>
 
     <div id="screenAdmin" class="screen">
-        <h3>قائمة المشتركين المحفوظة</h3>
+        <h3>بيانات المشتركين كاملة</h3>
         <div class="admin-table-wrapper" id="adminTable"></div>
-        <button onclick="clearAllData()" style="background:#b71c1c; color:white; font-size:0.7rem; margin-top:10px;">حذف كل البيانات</button>
+        <button onclick="clearAllData()" style="background:#b71c1c; color:white; font-size:0.8rem; margin-top:10px;">حذف كل السجلات</button>
         <button onclick="showView('screen1')" style="background:#333; color:white; margin-top:10px">خروج</button>
     </div>
 
@@ -153,7 +154,6 @@
 </div>
 
 <script>
-    // تحميل البيانات من ذاكرة المتصفح عند فتح الصفحة
     let db = JSON.parse(localStorage.getItem('alquds_users')) || [];
     let currentIdx = -1;
 
@@ -166,7 +166,6 @@
         showView('screenReg');
     }
 
-    // حفظ المستخدم في الـ LocalStorage
     function finishReg() {
         let n = document.getElementById('regName').value;
         let b = document.getElementById('regBirth').value;
@@ -174,10 +173,15 @@
 
         if(!n || !b || !idVal) { alert("من فضلك أكمل البيانات"); return; }
         
-        let user = { name: n, birth: b, nationalId: idVal, pts: 0 };
-        db.push(user);
+        let user = { 
+            name: n, 
+            birth: b, 
+            nationalId: idVal, 
+            pts: 0,
+            dateRegistered: new Date().toLocaleDateString('ar-EG')
+        };
         
-        // حفظ القائمة المحدثة في الجهاز
+        db.push(user);
         localStorage.setItem('alquds_users', JSON.stringify(db));
         
         currentIdx = db.length - 1;
@@ -198,22 +202,34 @@
         }
     }
 
+    // الدالة المعدلة لعرض كافة البيانات
     function loadAdminTable() {
-        let html = "<table><tr><th>الاسم</th><th>نقاط</th><th>إجراء</th></tr>";
+        let html = `<table>
+            <tr>
+                <th>الاسم</th>
+                <th>الميلاد</th>
+                <th>الرقم القومي</th>
+                <th>النقاط</th>
+                <th>إضافة</th>
+            </tr>`;
+            
         db.forEach((item, index) => {
             html += `<tr>
                 <td>${item.name}</td>
+                <td>${item.birth}</td>
+                <td>${item.nationalId}</td>
                 <td>${item.pts}</td>
-                <td><button onclick="addPts(${index})" style="padding:2px 5px; margin:0; font-size:11px; width:auto; display:inline-block;">+5</button></td>
+                <td><button onclick="addPts(${index})" style="padding:4px; margin:0; font-size:10px; width:auto;">+5</button></td>
             </tr>`;
         });
+        
         html += "</table>";
-        document.getElementById('adminTable').innerHTML = (db.length > 0) ? html : "<p style='color:black; padding:10px;'>لا يوجد مشتركين</p>";
+        document.getElementById('adminTable').innerHTML = (db.length > 0) ? html : "<p style='color:black; padding:10px;'>لا يوجد مشتركين حالياً</p>";
     }
 
     function addPts(idx) {
         db[idx].pts += 5;
-        localStorage.setItem('alquds_users', JSON.stringify(db)); // حفظ التعديل
+        localStorage.setItem('alquds_users', JSON.stringify(db));
         loadAdminTable();
         updatePointsUI();
     }
@@ -224,9 +240,8 @@
         }
     }
 
-    // وظيفة إضافية لمسح كل المسجلين
     function clearAllData() {
-        if(confirm("هل أنت متأكد من حذف جميع بيانات المسجلين؟")) {
+        if(confirm("تحذير: هل أنت متأكد من مسح جميع بيانات المشتركين نهائياً؟")) {
             localStorage.removeItem('alquds_users');
             db = [];
             loadAdminTable();
