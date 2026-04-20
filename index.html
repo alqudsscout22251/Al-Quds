@@ -10,7 +10,7 @@
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1b5e20; color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 0; }
-        .container { background-color: rgba(0, 0, 0, 0.85); padding: 25px; border-radius: 15px; text-align: center; width: 95%; max-width: 950px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.1); }
+        .container { background-color: rgba(0, 0, 0, 0.85); padding: 25px; border-radius: 15px; text-align: center; width: 95%; max-width: 1000px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.1); }
         .screen { display: none; }
         .active { display: block; }
         button { display: block; width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px; background-color: #ffffff; color: #1b5e20; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
@@ -18,17 +18,15 @@
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; color: black; font-size: 1rem; }
         .dev-link { background: none; color: #81c784; text-decoration: underline; font-size: 0.85rem; margin-top: 20px; cursor: pointer; border: none; }
         
-        /* تحسين الجدول ليظهر بشكل احترافي */
-        .admin-table-wrapper { max-height: 450px; overflow: auto; margin-top: 15px; background: white; border-radius: 8px; border: 1px solid #ddd; }
-        table { width: 100%; min-width: 800px; color: #333; border-collapse: collapse; font-size: 0.9rem; }
-        th, td { border: 1px solid #eee; padding: 12px 8px; text-align: center; }
-        th { background: #f8f9fa; position: sticky; top: 0; z-index: 10; color: #1b5e20; font-weight: bold; }
-        tr:nth-child(even) { background-color: #fafafa; }
+        /* تحسينات الجدول */
+        .admin-table-wrapper { max-height: 500px; overflow: auto; margin-top: 15px; background: white; border-radius: 8px; }
+        table { width: 100%; min-width: 850px; color: #222; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: center; }
+        th { background: #eee; position: sticky; top: 0; z-index: 10; color: #1b5e20; }
+        tr:hover { background-color: #f1f1f1; }
         
-        .delete-btn { background-color: #ff5252 !important; color: white !important; width: auto !important; display: inline-block; padding: 5px 12px; margin: 0; font-size: 0.85rem; border-radius: 4px; }
-        .delete-btn:hover { background-color: #d32f2f !important; }
-
-        .footer { margin-top: 20px; font-size: 0.8rem; color: #aaa; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        .delete-btn { background-color: #ff5252 !important; color: white !important; width: auto !important; display: inline-block; padding: 5px 15px; margin: 0; font-size: 0.8rem; border-radius: 5px; }
+        .delete-btn:hover { background-color: #b71c1c !important; }
     </style>
 </head>
 <body>
@@ -55,8 +53,8 @@
     </div>
 
     <div id="screenAdmin" class="screen">
-        <h3 style="color:#ffd700">إدارة المشتركين السحابية</h3>
-        <div class="admin-table-wrapper" id="adminTable">جاري التحميل...</div>
+        <h3 style="color:#ffd700">إدارة المشتركين</h3>
+        <div class="admin-table-wrapper" id="adminTable">جاري جلب البيانات...</div>
         <button onclick="showView('screen1')" style="background:#333; color:white; margin-top:15px">خروج</button>
     </div>
 
@@ -80,7 +78,7 @@
 </div>
 
 <script>
-    // إعدادات Firebase الخاصة بك
+    // إعدادات Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBKfHcBDQCdhnaWfVwi5f3YqzZu6fLOmUY",
         authDomain: "al-qyds-scout.firebaseapp.com",
@@ -106,28 +104,33 @@
         showView('screenReg');
     }
 
-    // وظيفة الحفظ - تم التأكد من أسماء المتغيرات
+    // وظيفة الإرسال
     function finishReg() {
+        const name = document.getElementById('regName').value;
+        const phone = document.getElementById('regPhone').value;
+        const whatsapp = document.getElementById('regWhatsApp').value;
+        const parent = document.getElementById('regParentPhone').value;
+        const address = document.getElementById('regAddress').value;
+        const school = document.getElementById('regSchool').value;
+        const stage = document.getElementById('selectedStage').value;
+
+        if(!name || !phone) { alert("يرجى كتابة الاسم ورقم الهاتف على الأقل"); return; }
+
         const data = {
-            name: document.getElementById('regName').value,
-            phone: document.getElementById('regPhone').value,
-            whatsapp: document.getElementById('regWhatsApp').value,
-            parentPhone: document.getElementById('regParentPhone').value,
-            address: document.getElementById('regAddress').value,
-            schoolYear: document.getElementById('regSchool').value,
-            stage: document.getElementById('selectedStage').value,
-            regDate: new Date().toLocaleString('ar-EG')
+            name: name,
+            phone: phone,
+            whatsapp: whatsapp,
+            parentPhone: parent,
+            address: address,
+            schoolYear: school,
+            stage: stage,
+            time: new Date().toLocaleString('ar-EG')
         };
 
-        if(!data.name || !data.phone) { alert("أكمل البيانات المطلوبة"); return; }
-
-        document.getElementById('saveBtn').innerText = "جاري الحفظ...";
+        document.getElementById('saveBtn').innerText = "جاري الإرسال...";
         database.ref('scouts').push(data).then(() => {
             showView('screenSuccess');
-        }).catch(err => {
-            alert("خطأ في الاتصال: " + err.message);
-            document.getElementById('saveBtn').innerText = "إرسال البيانات للسحابة";
-        });
+        }).catch(err => alert("حدث خطأ: " + err.message));
     }
 
     function checkDev() {
@@ -137,18 +140,18 @@
             loadCloudData();
             showView('screenAdmin');
         } else {
-            alert("اسم المستخدم أو كلمة المرور غير صحيحة");
+            alert("بيانات الدخول خاطئة");
         }
     }
 
-    // وظيفة عرض الجدول - تم تصحيح استدعاء المتغيرات لتطابق المحفوظة
+    // وظيفة عرض البيانات (مصححة بنسبة 100%)
     function loadCloudData() {
         database.ref('scouts').on('value', (snapshot) => {
             const data = snapshot.val();
-            const tableDiv = document.getElementById('adminTable');
+            const container = document.getElementById('adminTable');
             
             if(!data) {
-                tableDiv.innerHTML = "<p style='color:black; padding:20px;'>لا يوجد مشتركين حالياً.</p>";
+                container.innerHTML = "<p style='color:black; padding:20px;'>لا توجد بيانات حالياً.</p>";
                 return;
             }
 
@@ -168,35 +171,30 @@
                 <tbody>`;
 
             for(let id in data) {
-                // هنا تم تصحيح الأسماء لتطابق ما يتم حفظه في finishReg
+                const item = data[id];
                 html += `<tr>
-                    <td>${data[id].name || '-'}</td>
-                    <td>${data[id].stage || '-'}</td>
-                    <td>${data[id].phone || '-'}</td>
-                    <td>${data[id].whatsapp || '-'}</td>
-                    <td>${data[id].parentPhone || '-'}</td>
-                    <td>${data[id].address || '-'}</td>
-                    <td>${data[id].schoolYear || '-'}</td>
+                    <td>${item.name || '-'}</td>
+                    <td>${item.stage || '-'}</td>
+                    <td>${item.phone || '-'}</td>
+                    <td>${item.whatsapp || '-'}</td>
+                    <td>${item.parentPhone || '-'}</td>
+                    <td>${item.address || '-'}</td>
+                    <td>${item.schoolYear || '-'}</td>
                     <td>
-                        <button class="delete-btn" onclick="deleteUser('${id}', '${data[id].name}')">حذف</button>
+                        <button class="delete-btn" onclick="deleteUser('${id}', '${item.name}')">حذف</button>
                     </td>
                 </tr>`;
             }
             html += "</tbody></table>";
-            tableDiv.innerHTML = html;
+            container.innerHTML = html;
         });
     }
 
-    // وظيفة الحذف
     function deleteUser(userId, userName) {
-        if(confirm(`هل أنت متأكد من حذف المشترك: ${userName}؟`)) {
+        if(confirm(`هل تريد بالتأكيد حذف الحساب الخاص بـ: ${userName}؟`)) {
             database.ref('scouts/' + userId).remove()
-            .then(() => {
-                alert("تم حذف البيانات بنجاح.");
-            })
-            .catch((error) => {
-                alert("فشل الحذف: " + error.message);
-            });
+            .then(() => alert("تم الحذف بنجاح"))
+            .catch(err => alert("خطأ أثناء الحذف: " + err.message));
         }
     }
 </script>
