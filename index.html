@@ -10,17 +10,24 @@
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1b5e20; color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 0; }
-        .container { background-color: rgba(0, 0, 0, 0.85); padding: 25px; border-radius: 15px; text-align: center; width: 95%; max-width: 600px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.1); }
+        .container { background-color: rgba(0, 0, 0, 0.85); padding: 25px; border-radius: 15px; text-align: center; width: 95%; max-width: 900px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.1); }
         .screen { display: none; }
         .active { display: block; }
         button { display: block; width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px; background-color: #ffffff; color: #1b5e20; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #e0e0e0; transform: scale(1.02); }
+        button:hover { background-color: #e0e0e0; transform: scale(1.01); }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; color: black; font-size: 1rem; }
         .dev-link { background: none; color: #81c784; text-decoration: underline; font-size: 0.85rem; margin-top: 20px; cursor: pointer; border: none; }
+        
+        /* تصميم الجدول */
         .admin-table-wrapper { max-height: 450px; overflow: auto; margin-top: 15px; background: white; border-radius: 8px; }
-        table { width: 100%; min-width: 800px; color: black; border-collapse: collapse; font-size: 0.85rem; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background: #f4f4f4; position: sticky; top: 0; font-weight: bold; }
+        table { width: 100%; min-width: 900px; color: black; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #f4f4f4; position: sticky; top: 0; z-index: 10; }
+        
+        /* زر الحذف */
+        .delete-btn { background-color: #ff5252; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
+        .delete-btn:hover { background-color: #d32f2f; }
+
         .footer { margin-top: 20px; font-size: 0.8rem; color: #aaa; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
     </style>
 </head>
@@ -28,8 +35,8 @@
 
 <div class="container">
     <div id="screen1" class="screen active">
-        <h1 style="margin-bottom: 5px;">Al Quds Scout</h1>
-        <p style="margin-bottom: 20px; color: #ffd700;">نظام التسجيل المركزي المطور</p>
+        <h1>Al Quds Scout</h1>
+        <p style="color: #ffd700;">نظام التسجيل المركزي - لوحة التحكم</p>
         <button onclick="openRegister('براعم')">براعم</button>
         <button onclick="openRegister('أشبال')">أشبال</button>
         <button onclick="openRegister('زهرات')">زهرات</button>
@@ -48,8 +55,8 @@
     </div>
 
     <div id="screenAdmin" class="screen">
-        <h3 style="color:#ffd700">سجل المشتركين السحابي</h3>
-        <div class="admin-table-wrapper" id="adminTable">جاري تحميل البيانات...</div>
+        <h3 style="color:#ffd700">إدارة المشتركين السحابية</h3>
+        <div class="admin-table-wrapper" id="adminTable">جاري التحميل...</div>
         <button onclick="showView('screen1')" style="background:#333; color:white; margin-top:15px">خروج</button>
     </div>
 
@@ -68,14 +75,12 @@
 
     <div id="screenSuccess" class="screen">
         <h2 style="color:#81c784">تم الحفظ بنجاح!</h2>
-        <p>شكراً لك، تم إرسال بياناتك لقاعدة بيانات الكشافة.</p>
         <button onclick="location.reload()">تسجيل فرد آخر</button>
-        <div class="footer">Al Quds Scout © 2026</div>
     </div>
 </div>
 
 <script>
-    // بيانات Firebase الخاصة بمشروعك (محدثة)
+    // بيانات الـ Firebase الخاصة بك
     const firebaseConfig = {
         apiKey: "AIzaSyBKfHcBDQCdhnaWfVwi5f3YqzZu6fLOmUY",
         authDomain: "al-qyds-scout.firebaseapp.com",
@@ -87,7 +92,6 @@
         databaseURL: "https://al-qyds-scout-default-rtdb.firebaseio.com/" 
     };
 
-    // تهيئة التطبيق
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
@@ -98,7 +102,7 @@
 
     function openRegister(stage) {
         document.getElementById('selectedStage').value = stage;
-        document.getElementById('regTitle').innerText = "تسجيل في مرحلة: " + stage;
+        document.getElementById('regTitle').innerText = "تسجيل: " + stage;
         showView('screenReg');
     }
 
@@ -114,21 +118,12 @@
             regDate: new Date().toLocaleString('ar-EG')
         };
 
-        if(!data.name || !data.phone || !data.parentPhone) { 
-            alert("من فضلك أكمل الحقول الأساسية (الاسم، الهاتف، ورقم ولي الأمر)"); 
-            return; 
-        }
+        if(!data.name || !data.phone) { alert("أكمل البيانات المطلوبة"); return; }
 
-        document.getElementById('saveBtn').innerText = "جاري الاتصال بالسحابة...";
-        document.getElementById('saveBtn').disabled = true;
-
+        document.getElementById('saveBtn').innerText = "جاري الحفظ...";
         database.ref('scouts').push(data).then(() => {
             showView('screenSuccess');
-        }).catch(err => {
-            alert("خطأ: " + err.message + " - تأكد من فتح Rules في Firebase");
-            document.getElementById('saveBtn').innerText = "إرسال البيانات للسحابة";
-            document.getElementById('saveBtn').disabled = false;
-        });
+        }).catch(err => alert("خطأ: " + err.message));
     }
 
     function checkDev() {
@@ -138,15 +133,16 @@
             loadCloudData();
             showView('screenAdmin');
         } else {
-            alert("خطأ في بيانات الدخول");
+            alert("خطأ في البيانات");
         }
     }
 
+    // جلب البيانات مع إضافة زر الحذف
     function loadCloudData() {
         database.ref('scouts').on('value', (snapshot) => {
             const data = snapshot.val();
             if(!data) {
-                document.getElementById('adminTable').innerHTML = "<p style='color:black; padding:20px;'>لا توجد بيانات حالياً.</p>";
+                document.getElementById('adminTable').innerHTML = "<p style='color:black; padding:20px;'>القائمة فارغة.</p>";
                 return;
             }
 
@@ -159,8 +155,8 @@
                         <th>واتساب</th>
                         <th>ولي الأمر</th>
                         <th>العنوان</th>
-                        <th>السنة الدراسية</th>
-                        <th>التاريخ</th>
+                        <th>الدراسة</th>
+                        <th>إجراء</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -174,12 +170,27 @@
                     <td>${data[id].parentPhone}</td>
                     <td>${data[id].address}</td>
                     <td>${data[id].schoolYear}</td>
-                    <td>${data[id].regDate}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteUser('${id}', '${data[id].name}')">حذف</button>
+                    </td>
                 </tr>`;
             }
             html += "</tbody></table>";
             document.getElementById('adminTable').innerHTML = html;
         });
+    }
+
+    // وظيفة الحذف المنفرد
+    function deleteUser(userId, userName) {
+        if(confirm(هل أنت متأكد من حذف المشترك: ${userName}؟)) {
+            database.ref('scouts/' + userId).remove()
+            .then(() => {
+                alert("تم الحذف بنجاح من السيرفر");
+            })
+            .catch((error) => {
+                alert("فشل الحذف: " + error.message);
+            });
+        }
     }
 </script>
 
