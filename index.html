@@ -71,7 +71,7 @@
             border: none;
         }
 
-        input, select {
+        input, select, textarea {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
@@ -82,7 +82,7 @@
         }
 
         .admin-table-wrapper {
-            max-height: 400px;
+            max-height: 300px;
             overflow-x: auto;
             overflow-y: auto;
             margin-top: 15px;
@@ -91,13 +91,22 @@
         }
 
         table {
-            width: 150%; /* عرض أكبر لاستيعاب البيانات الكثيرة */
+            width: 150%;
             color: black;
             border-collapse: collapse;
             font-size: 0.8rem;
         }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background: #eee; font-weight: bold; position: sticky; top: 0; }
+
+        .activity-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-right: 4px solid #ffd700;
+            text-align: right;
+        }
 
         .footer {
             margin-top: 20px;
@@ -115,7 +124,7 @@
 
     <div id="screen1" class="screen active">
         <h1>Al Quds</h1>
-        <p>اختر المرحلة ا</p>
+        <p>اختر المرحلة الدراسية للتسجيل</p>
         <button onclick="openRegister('براعم')">1- براعم</button>
         <button onclick="openRegister('أشبال')">2- أشبال</button>
         <button onclick="openRegister('زهرات')">3- زهرات</button>
@@ -135,50 +144,56 @@
     </div>
 
     <div id="screenAdmin" class="screen">
-        <h3>بيانات المشتركين كاملة</h3>
+        <h3>لوحة التحكم</h3>
+        
+        <div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; margin-bottom:20px;">
+            <h4 style="margin-top:0">➕ إضافة نشاط جديد</h4>
+            <input type="text" id="newActivityInput" placeholder="اكتب تفاصيل النشاط هنا...">
+            <button onclick="addNewActivity()" style="background:#ffd700; color:black; padding:8px;">نشر النشاط</button>
+        </div>
+
+        <h4>👥 بيانات المشتركين</h4>
         <div class="admin-table-wrapper" id="adminTable"></div>
-        <button onclick="clearAllData()" style="background:#b71c1c; color:white; font-size:0.8rem; margin-top:10px;">حذف كل السجلات</button>
+        
+        <button onclick="clearAllData()" style="background:#b71c1c; color:white; font-size:0.8rem; margin-top:10px;">حذف كل سجلات المشتركين</button>
         <button onclick="showView('screen1')" style="background:#333; color:white; margin-top:10px">خروج</button>
     </div>
 
     <div id="screenReg" class="screen">
         <h3 id="regTitle">تسجيل جديد</h3>
-        
         <input type="text" id="regName" placeholder="الاسم ثلاثي">
         <input type="text" id="regAddress" placeholder="العنوان بالتفصيل">
         <input type="tel" id="regPhone" placeholder="رقم الهاتف">
         <input type="tel" id="regWhatsapp" placeholder="رقم الواتساب">
         <input type="tel" id="regParentPhone" placeholder="رقم ولي الأمر">
         <input type="email" id="regEmail" placeholder="البريد الإلكتروني (Gmail)">
-        
         <label>تاريخ الميلاد:</label>
         <input type="date" id="regBirth">
-        
         <input type="text" id="regSchoolYear" placeholder="السنة الدراسية">
-        
         <input type="hidden" id="selectedStage">
-
         <button onclick="finishReg()">حفظ البيانات ودخول</button>
         <button onclick="showView('screen1')" style="background:#555; color:white">إلغاء</button>
     </div>
 
     <div id="screenActivities" class="screen">
-        <h3 style="color:#ffd700">تم التسجيل بنجاح!</h3>
-        <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:10px; margin-bottom:15px;">
-            <p>📍 تنظيم لجان المهرجان الـ 37</p>
-            <p>مرحباً بك في أسرة القدس الكشفية</p>
-        </div>
-        <button onclick="location.reload()" style="background:#81c784; color:black">تسجيل فرد آخر</button>
+        <h3 style="color:#ffd700">الأنشطة والمهام الحالية</h3>
+        <div id="activitiesList">
+            </div>
+        <button onclick="location.reload()" style="background:#81c784; color:black">الرجوع للرئيسية</button>
+        <div class="footer">الدعم الفني: 01204790130</div>
     </div>
 </div>
 
 <script>
+    // جلب البيانات من الذاكرة المحلية
     let db = JSON.parse(localStorage.getItem('alquds_users')) || [];
+    let activities = JSON.parse(localStorage.getItem('alquds_activities')) || ["📍 تنظيم لجان المهرجان الـ 37"];
     let currentIdx = -1;
 
     function showView(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        if(id === 'screenActivities') displayActivities();
     }
 
     function openRegister(stage) {
@@ -202,24 +217,41 @@
             regDate: new Date().toLocaleDateString('ar-EG')
         };
 
-        if(!data.name || !data.phone || !data.stage) { 
-            alert("من فضلك أكمل البيانات الأساسية (الاسم، الهاتف، المرحلة)"); 
-            return; 
-        }
+        if(!data.name || !data.phone) { alert("من فضلك أكمل البيانات الأساسية"); return; }
         
         db.push(data);
         localStorage.setItem('alquds_users', JSON.stringify(db));
-        
         currentIdx = db.length - 1;
+        
         updatePointsUI();
         document.getElementById('mainPoints').style.display = 'block';
         showView('screenActivities');
     }
 
+    // دوال الأنشطة
+    function displayActivities() {
+        let html = "";
+        activities.forEach(act => {
+            html += <div class="activity-item">${act}</div>;
+        });
+        document.getElementById('activitiesList').innerHTML = html;
+    }
+
+    function addNewActivity() {
+        let actInput = document.getElementById('newActivityInput');
+        if(actInput.value.trim() !== "") {
+            activities.unshift("📍 " + actInput.value); // إضافة النشاط في البداية
+            localStorage.setItem('alquds_activities', JSON.stringify(activities));
+            actInput.value = "";
+            alert("تم نشر النشاط الجديد!");
+        } else {
+            alert("اكتب شيئاً أولاً");
+        }
+    }
+
     function checkDev() {
         let u = document.getElementById('userIn').value;
         let p = document.getElementById('passIn').value;
-        
         if(u === "Ahmedmada_90" && p === "o90po90p") {
             loadAdminTable();
             showView('screenAdmin');
@@ -229,37 +261,18 @@
     }
 
     function loadAdminTable() {
-        let html = `<table>
-            <tr>
-                <th>الاسم</th>
-                <th>المرحلة</th>
-                <th>السنة الدراسية</th>
-                <th>الهاتف</th>
-                <th>واتساب</th>
-                <th>ولي الأمر</th>
-                <th>العنوان</th>
-                <th>الميلاد</th>
-                <th>النقاط</th>
-                <th>تحكم</th>
-            </tr>`;
-            
+        let html = <table><tr><th>الاسم</th><th>المرحلة</th><th>الهاتف</th><th>النقاط</th><th>تحكم</th></tr>;
         db.forEach((item, index) => {
             html += `<tr>
                 <td>${item.name}</td>
                 <td>${item.stage}</td>
-                <td>${item.schoolYear}</td>
                 <td>${item.phone}</td>
-                <td>${item.whatsapp}</td>
-                <td>${item.parentPhone}</td>
-                <td>${item.address}</td>
-                <td>${item.birth}</td>
                 <td><b>${item.pts}</b></td>
                 <td><button onclick="addPts(${index})" style="padding:5px; margin:0; font-size:10px; background:#ffd700; color:#000">+5</button></td>
             </tr>`;
         });
-        
         html += "</table>";
-        document.getElementById('adminTable').innerHTML = (db.length > 0) ? html : "<p style='color:black; padding:10px;'>لا يوجد مشتركين حالياً</p>";
+        document.getElementById('adminTable').innerHTML = (db.length > 0) ? html : "<p style='color:black; padding:10px;'>لا يوجد مشتركين</p>";
     }
 
     function addPts(idx) {
@@ -276,7 +289,7 @@
     }
 
     function clearAllData() {
-        if(confirm("هل أنت متأكد من مسح جميع البيانات؟ لا يمكن التراجع!")) {
+        if(confirm("مسح كل المشتركين؟")) {
             localStorage.removeItem('alquds_users');
             db = [];
             loadAdminTable();
