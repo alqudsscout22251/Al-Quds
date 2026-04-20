@@ -3,79 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Al Quds Scout - نظام مستقر</title>
+    <title>Al Quds Scout - نظام الإدارة النهائي</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1b5e20; color: white; margin: 0; padding: 10px; min-height: 100vh; }
-        .container { background-color: rgba(0, 0, 0, 0.9); padding: 15px; border-radius: 15px; text-align: center; width: 100%; max-width: 1300px; margin: auto; box-sizing: border-box; }
+        body { font-family: sans-serif; background-color: #1b5e20; color: white; margin: 0; padding: 10px; direction: rtl; }
+        .container { background: rgba(0,0,0,0.9); padding: 15px; border-radius: 15px; max-width: 1300px; margin: auto; text-align: center; }
         .screen { display: none; }
         .active { display: block; }
-        button { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; padding: 12px; margin: 5px 0; width: 100%; transition: 0.2s; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; color: black; }
         
-        .table-container { width: 100%; overflow-x: auto; background: white; border-radius: 10px; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; color: #333; min-width: 1000px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
-        th { background: #f4f4f4; color: #1b5e20; position: sticky; top: 0; }
-        
-        .del-col { display: none; width: 70px; }
-        .del-btn { background: #d32f2f; color: white; padding: 5px; width: 100%; font-size: 0.8rem; }
+        /* تحسين شكل الزراير عشان تستجيب فوراً */
+        button { cursor: pointer; border-radius: 8px; border: none; padding: 15px; margin: 8px 0; width: 100%; font-weight: bold; font-size: 1.1rem; }
+        .main-btn { background: white; color: #1b5e20; }
+        .action-btn { background: #ffd700; color: black; }
+        .exit-btn { background: #444; color: white; }
+        .del-btn { background: #ff5252; color: white; padding: 5px; font-size: 0.8rem; width: auto; }
 
-        .admin-footer { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        #toggleDel { background: #ffd700; color: black; max-width: 300px; }
-        #exitBtn { background: #444; color: white; max-width: 200px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; font-size: 1rem; color: black; }
+        
+        .table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 10px; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; color: #333; min-width: 1000px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        th { background: #f4f4f4; color: #1b5e20; }
+
+        .del-col { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="screenHome" class="screen active">
+    <div id="home" class="screen active">
         <h1>Al Quds Scout</h1>
-        <button style="background:white; color:#1b5e20;" onclick="goReg('براعم')">براعم</button>
-        <button style="background:white; color:#1b5e20;" onclick="goReg('أشبال')">أشبال</button>
-        <button style="background:white; color:#1b5e20;" onclick="goReg('زهرات')">زهرات</button>
-        <button style="background:white; color:#1b5e20;" onclick="goReg('كشافة')">كشافة</button>
-        <button style="background:white; color:#1b5e20;" onclick="goReg('مرشدات')">مرشدات</button>
-        <button style="background:white; color:#1b5e20;" onclick="goReg('جوالة')">جوالة</button>
-        <p onclick="showV('screenLogin')" style="text-decoration:underline; cursor:pointer; color:#81c784; margin-top:20px;">دخول الإدارة</p>
+        <button class="main-btn" onclick="openReg('براعم')">براعم</button>
+        <button class="main-btn" onclick="openReg('أشبال')">أشبال</button>
+        <button class="main-btn" onclick="openReg('زهرات')">زهرات</button>
+        <button class="main-btn" onclick="openReg('كشافة')">كشافة</button>
+        <button class="main-btn" onclick="openReg('مرشدات')">مرشدات</button>
+        <button class="main-btn" onclick="openReg('جوالة')">جوالة</button>
+        <p onclick="showScreen('login')" style="text-decoration:underline; cursor:pointer; color:#81c784; margin-top:20px;">دخول الإدارة</p>
     </div>
 
-    <div id="screenAdmin" class="screen">
-        <h2 style="color:#ffd700;">لوحة البيانات</h2>
-        <div class="table-container" id="dataTable">جاري التحميل...</div>
-        <div class="admin-footer">
-            <button id="toggleDel" onclick="toggleDel()">تفعيل الحذف 🗑️</button>
-            <button id="exitBtn" onclick="location.reload()">خروج</button>
-        </div>
+    <div id="form" class="screen">
+        <h3 id="formTitle">تسجيل</h3>
+        <input type="text" id="name" placeholder="الاسم ثلاثي">
+        <input type="tel" id="p1" placeholder="رقم الهاتف">
+        <input type="tel" id="p2" placeholder="واتساب">
+        <input type="tel" id="p3" placeholder="رقم ولي الأمر">
+        <input type="text" id="addr" placeholder="العنوان">
+        <input type="text" id="year" placeholder="السنة الدراسية">
+        <input type="hidden" id="stage">
+        <button class="action-btn" onclick="saveToFirebase()">حفظ البيانات</button>
+        <button class="exit-btn" onclick="showScreen('home')">رجوع</button>
     </div>
 
-    <div id="screenLogin" class="screen">
-        <h3>تسجيل دخول</h3>
+    <div id="login" class="screen">
+        <h3>أدخل بيانات المدير</h3>
         <input type="text" id="u" placeholder="المستخدم">
-        <input type="password" id="p" placeholder="الرمز">
-        <button onclick="login()" style="background:#ffd700;">دخول</button>
-        <button onclick="showV('screenHome')" style="background:none; color:white;">رجوع</button>
+        <input type="password" id="p" placeholder="كلمة المرور">
+        <button class="action-btn" onclick="loginCheck()">دخول</button>
+        <button class="exit-btn" onclick="showScreen('home')">إلغاء</button>
     </div>
 
-    <div id="screenForm" class="screen">
-        <h3 id="stageTitle">تسجيل</h3>
-        <input type="text" id="n" placeholder="الاسم ثلاثي">
-        <input type="tel" id="ph" placeholder="الهاتف">
-        <input type="tel" id="w" placeholder="واتساب">
-        <input type="tel" id="pp" placeholder="ولي الأمر">
-        <input type="text" id="ad" placeholder="العنوان">
-        <input type="text" id="sy" placeholder="السنة الدراسية">
-        <input type="hidden" id="stg">
-        <button onclick="sendData()" style="background:#ffd700;">إرسال</button>
-        <button onclick="showV('screenHome')" style="background:none; color:white;">رجوع</button>
+    <div id="admin" class="screen">
+        <h2 style="color:#ffd700">سجل المشتركين</h2>
+        <div class="table-wrapper" id="tableContent">جاري التحميل...</div>
+        <div style="margin-top:20px;">
+            <button id="delToggle" class="action-btn" style="width:250px" onclick="toggleDel()">تفعيل الحذف 🗑️</button>
+            <button class="exit-btn" style="width:250px" onclick="location.reload()">خروج نهائي</button>
+        </div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = {
+    // إعدادات Firebase الخاصة بك
+    const config = {
         apiKey: "AIzaSyBKfHcBDQCdhnaWfVwi5f3YqzZu6fLOmUY",
         authDomain: "al-qyds-scout.firebaseapp.com",
         projectId: "al-qyds-scout",
@@ -85,70 +88,101 @@
         measurementId: "G-MH5ZE8LLZM",
         databaseURL: "https://al-qyds-scout-default-rtdb.firebaseio.com/" 
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    let canDel = false;
 
-    function showV(id){
+    firebase.initializeApp(config);
+    const db = firebase.database();
+    let deleteMode = false;
+
+    // وظيفة التنقل بين الشاشات
+    function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        window.scrollTo(0,0);
     }
 
-    function goReg(s){
-        document.getElementById('stg').value = s;
-        document.getElementById('stageTitle').innerText = "تسجيل: " + s;
-        showV('screenForm');
+    // فتح نموذج التسجيل
+    function openReg(s) {
+        document.getElementById('stage').value = s;
+        document.getElementById('formTitle').innerText = "مرحلة: " + s;
+        showScreen('form');
     }
 
-    function sendData(){
-        const obj = {
-            name: document.getElementById('n').value,
-            p1: document.getElementById('ph').value,
-            p2: document.getElementById('w').value,
-            p3: document.getElementById('pp').value,
-            addr: document.getElementById('ad').value,
-            year: document.getElementById('sy').value,
-            stage: document.getElementById('stg').value,
+    // حفظ البيانات
+    function saveToFirebase() {
+        const data = {
+            name: document.getElementById('name').value,
+            phone: document.getElementById('p1').value,
+            whatsapp: document.getElementById('p2').value,
+            parent: document.getElementById('p3').value,
+            address: document.getElementById('addr').value,
+            school: document.getElementById('year').value,
+            stage: document.getElementById('stage').value,
             time: new Date().toLocaleString('ar-EG')
         };
-        db.ref('scouts').push(obj).then(() => { alert("تم"); location.reload(); });
-    }
-
-    function login(){
-        if(document.getElementById('u').value === "Ahmedmada_90" && document.getElementById('p').value === "o90po90p"){
-            getData(); showV('screenAdmin');
-        } else { alert("خطأ"); }
-    }
-
-    function getData(){
-        db.ref('scouts').on('value', (snap) => {
-            const val = snap.val();
-            if(!val){ document.getElementById('dataTable').innerHTML = "لا بيانات"; return; }
-            let h = <table><tr><th>الاسم</th><th>المرحلة</th><th>هاتف</th><th>واتس</th><th>ولي أمر</th><th>عنوان</th><th>سنة</th><th class="del-col">إجراء</th></tr>;
-            for(let k in val){
-                h += <tr><td>${val[k].name}</td><td>${val[k].stage}</td><td>${val[k].p1}</td><td>${val[k].p2}</td><td>${val[k].p3}</td><td>${val[k].addr}</td><td>${val[k].year}</td><td class="del-col"><button class="del-btn" onclick="del('${k}')">حذف</button></td></tr>;
-            }
-            document.getElementById('dataTable').innerHTML = h + "</table>";
-            updateDel(); // تحديث الحالة فوراً بعد رسم الجدول
+        
+        if(!data.name || !data.phone) { alert("أكمل الاسم والهاتف"); return; }
+        
+        db.ref('scouts').push(data).then(() => {
+            alert("تم التسجيل بنجاح");
+            location.reload();
         });
     }
 
-    function toggleDel(){
-        canDel = !canDel;
-        document.getElementById('toggleDel').innerText = canDel ? "إيقاف الحذف 🔓" : "تفعيل الحذف 🗑️";
-        updateDel();
+    // تسجيل دخول الإدارة
+    function loginCheck() {
+        if(document.getElementById('u').value === "Ahmedmada_90" && document.getElementById('p').value === "o90po90p") {
+            loadAdminData();
+            showScreen('admin');
+        } else {
+            alert("بيانات خاطئة");
+        }
     }
 
-    function updateDel(){
+    // تحميل وعرض البيانات
+    function loadAdminData() {
+        db.ref('scouts').on('value', (snap) => {
+            const list = snap.val();
+            if(!list) {
+                document.getElementById('tableContent').innerHTML = "<p style='color:black; padding:20px;'>لا يوجد بيانات</p>";
+                return;
+            }
+
+            let table = `<table><tr>
+                <th>الاسم</th><th>المرحلة</th><th>الهاتف</th><th>واتساب</th><th>ولي الأمر</th><th>العنوان</th><th>الدراسة</th>
+                <th class="del-col">حذف</th>
+            </tr>`;
+
+            for(let key in list) {
+                table += `<tr>
+                    <td>${list[key].name}</td><td>${list[key].stage}</td><td>${list[key].phone}</td><td>${list[key].whatsapp}</td>
+                    <td>${list[key].parent}</td><td>${list[key].address}</td><td>${list[key].school}</td>
+                    <td class="del-col"><button class="del-btn" onclick="confirmDel('${key}')">مسح</button></td>
+                </tr>`;
+            }
+            document.getElementById('tableContent').innerHTML = table + "</table>";
+            refreshDelUI();
+        });
+    }
+
+    // تفعيل وإخفاء الحذف
+    function toggleDel() {
+        deleteMode = !deleteMode;
+        document.getElementById('delToggle').innerText = deleteMode ? "إيقاف الحذف 🔓" : "تفعيل الحذف 🗑️";
+        refreshDelUI();
+    }
+
+    function refreshDelUI() {
         const cols = document.querySelectorAll('.del-col');
-        cols.forEach(c => c.style.display = canDel ? "table-cell" : "none");
+        cols.forEach(c => c.style.display = deleteMode ? "table-cell" : "none");
     }
 
-    function del(id){
-        if(confirm("مسح السجل؟")){
+    // حذف سجل
+    function confirmDel(id) {
+        if(confirm("هل تريد حذف هذا السجل نهائياً؟")) {
             db.ref('scouts/' + id).remove();
         }
     }
 </script>
+
 </body>
 </html>
